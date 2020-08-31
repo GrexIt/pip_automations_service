@@ -16,7 +16,5 @@ setuptools.setup(
     license='unlicense',
     install_requires=[
         'redis',
-        'json',
-        're'
     ],
 )
