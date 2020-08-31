@@ -31,11 +31,10 @@ class GetActions:
         Responsible for processesing message_info and returning list of actions
     """
 
-    def __init__(self, request):
-        self.request = request
-        self.sm_id = request.sm_id
-        self.trigger = request.trigger
-        self.conditions_payload = request.conditions_payload
+    def __init__(self, payload):
+        self.sm_id = payload['sm_id']
+        self.trigger = payload['trigger']
+        self.conditions_payload = payload['conditions_payload']
         self.redis = AutomationsRedis()
 
     def process(self):
