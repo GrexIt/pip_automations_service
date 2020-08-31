@@ -1,9 +1,30 @@
 import json
 import re
+import redis
+from starlette.responses import JSONResponse
 
-from src.api.schema.response import GetActionsResponse
-from src.lib.api_response import send_response
-from src.lib.automations_redis import AutomationsRedis
+
+class AutomationsRedis:
+    def __init__(self):
+        self.client = redis.Redis(
+            host=g_.config.AUTOMATIONS.REDIS, port=6379, decode_responses=True
+        )
+
+    def hget(self, name, key):
+        return self.client.hget(name, key)
+
+    def hset(self, name, key, value):
+        return self.client.hset(name, key, value)
+
+    def hgetall(self, name):
+        return self.client.hgetall(name)
+
+    def hmset(self, name, dictionary):
+        return self.client.hmset(name, dictionary)
+
+    def delete(self, name):
+        return self.client.delete(name)
+
 
 
 class GetActions:
@@ -21,11 +42,18 @@ class GetActions:
     def process(self):
         hmap = self.get_all_automations_from_redis()
         if not hmap:
-            return send_response({})
+            return self.send_response({})
         actions = self.get_applicable_automations(hmap)
         if not actions:
-            return send_response({})
-        return GetActionsResponse(actions=actions)
+            return self.send_response({})
+        return self.send_response(dict(actions=actions))
+
+    def send_response(content, status_code=200):
+        return JSONResponse(
+            content=content,
+            status_code=status_code,
+            headers={"content-type": "application/json"},
+        )
 
     def get_all_automations_from_redis(self):
         return self.redis.hgetall("sm_id:" + str(self.sm_id))
