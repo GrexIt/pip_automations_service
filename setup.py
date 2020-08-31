@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="automations_get_actions",
+    name="automationsgetactions",
     version="0.0.2",
     author="Raghav CS",
     author_email="raghav@grexit.com",
