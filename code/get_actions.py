@@ -1,7 +1,6 @@
 import json
 import re
 import redis
-from starlette.responses import JSONResponse
 
 
 class AutomationsRedis:
@@ -48,12 +47,12 @@ class GetActions:
             return self.send_response({})
         return self.send_response(dict(actions=actions))
 
-    def send_response(content, status_code=200):
-        return JSONResponse(
+    def send_response(self, content, status_code=200):
+        return self.send_response(dict(
             content=content,
             status_code=status_code,
             headers={"content-type": "application/json"},
-        )
+        ))
 
     def get_all_automations_from_redis(self):
         return self.redis.hgetall("sm_id:" + str(self.sm_id))

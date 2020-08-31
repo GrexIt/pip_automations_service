@@ -14,4 +14,9 @@ setuptools.setup(
     url="https://github.com/GrexIt/pip_automation_actions",
     packages=setuptools.find_packages(),
     license='unlicense',
+    install_requires=[
+        'redis',
+        'json',
+        're'
+    ],
 )
