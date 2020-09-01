@@ -4,9 +4,9 @@ import redis
 
 
 class AutomationsRedis:
-    def __init__(self):
+    def __init__(self, redis_host):
         self.client = redis.Redis(
-            host=g_.config.AUTOMATIONS.REDIS, port=6379, decode_responses=True
+            host=redis_host, port=6379, decode_responses=True
         )
 
     def hget(self, name, key):
@@ -31,11 +31,11 @@ class GetActions:
         Responsible for processesing message_info and returning list of actions
     """
 
-    def __init__(self, payload):
+    def __init__(self, payload, redis_host):
         self.sm_id = payload['sm_id']
         self.trigger = payload['trigger']
         self.conditions_payload = payload['conditions_payload']
-        self.redis = AutomationsRedis()
+        self.redis = AutomationsRedis(redis_host)
 
     def process(self):
         hmap = self.get_all_automations_from_redis()
