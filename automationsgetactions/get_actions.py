@@ -40,11 +40,11 @@ class GetActions:
     def process(self):
         hmap = self.get_all_automations_from_redis()
         if not hmap:
-            return self.send_response({})
+            return {}
         actions = self.get_applicable_automations(hmap)
         if not actions:
-            return self.send_response({})
-        return self.send_response(dict(actions=actions))
+            return {}
+        return dict(actions=actions)
 
     def send_response(self, content, status_code=200):
         return self.send_response(dict(
