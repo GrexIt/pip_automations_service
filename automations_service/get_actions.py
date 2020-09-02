@@ -49,13 +49,6 @@ class GetActions:
             return {}
         return dict(actions=actions)
 
-    def send_response(self, content, status_code=200):
-        return self.send_response(dict(
-            content=content,
-            status_code=status_code,
-            headers={"content-type": "application/json"},
-        ))
-
     def get_all_automations_from_redis(self):
         return self.redis.hgetall("sm_id:" + str(self.sm_id))
 
