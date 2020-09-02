@@ -1,4 +1,5 @@
 import redis
+from .get_actions import GetActions
 
 
 def automation_enabled(sm_id, redis_host):
@@ -9,3 +10,6 @@ def automation_enabled(sm_id, redis_host):
     if not client.keys("sm_id:" + str(sm_id)):
         return False
     return True
+
+
+__all__ = ['GetActions']
