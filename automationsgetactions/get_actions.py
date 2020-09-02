@@ -31,13 +31,16 @@ class GetActions:
         Responsible for processesing message_info and returning list of actions
     """
 
-    def __init__(self, payload, redis_host):
+    def __init__(self, payload, redis_host, logobj=None):
+        self.log = logobj
         self.sm_id = payload['sm_id']
         self.trigger = payload['trigger']
         self.conditions_payload = payload['conditions_payload']
+        self.log.debug('Get Actions initialized', self.sm_id, self.trigger, self.conditions_payload)
         self.redis = AutomationsRedis(redis_host)
 
     def process(self):
+        self.log.debug('Get Actions process called')
         hmap = self.get_all_automations_from_redis()
         if not hmap:
             return {}
