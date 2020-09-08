@@ -1,6 +1,8 @@
 import json
 import re
 import redis
+from pydantic import BaseModel, Field, conlist
+from typing import Union
 
 
 class AutomationsRedis:
@@ -25,29 +27,47 @@ class AutomationsRedis:
         return self.client.delete(name)
 
 
+class LogPrint:
+    def __init__(self):
+        pass
+
+    def debug(self, *argv):
+        log = ''
+        for arg in argv:
+            log += str(arg)
+        print(log)
+
 
 class GetActions:
     """
         Responsible for processesing message_info and returning list of actions
     """
 
-    def __init__(self, payload, redis_host, logobj=None):
+    def __init__(self, payload, redis_host='automations_db', logobj=None):
+        print('here')
         self.log = logobj
-        self.sm_id = payload['sm_id']
-        self.trigger = payload['trigger']
-        self.conditions_payload = payload['conditions_payload']
+        if not logobj:
+            self.log = LogPrint()
+        self.payload = payload
+        self.GetActionsRequest = type(self.payload).__name__ == 'GetActionsRequest'
+        self.sm_id = self.payload_get('sm_id')
+        self.trigger = self.payload_get('trigger')
+        self.conditions_payload = self.payload_get('conditions_payload')
         self.log.debug('Get Actions initialized', self.sm_id, self.trigger, self.conditions_payload)
         self.redis = AutomationsRedis(redis_host)
+
+    def payload_get(self, value):
+        return getattr(self.payload, value) if self.GetActionsRequest else self.payload[value]
 
     def process(self):
         self.log.debug('Get Actions process called')
         hmap = self.get_all_automations_from_redis()
         if not hmap:
-            return {}
+            return None
         actions = self.get_applicable_automations(hmap)
         if not actions:
-            return {}
-        return dict(actions=actions)
+            return None
+        return actions if self.GetActionsRequest else dict(actions=actions)
 
     def get_all_automations_from_redis(self):
         return self.redis.hgetall("sm_id:" + str(self.sm_id))
@@ -74,7 +94,7 @@ class GetActions:
         return actions
 
     def does_condition_match(self, or_condition):
-        current_property = getattr(self.conditions_payload, or_condition["property"])
+        current_property = getattr(self.conditions_payload, or_condition["property"]) if self.GetActionsRequest else self.conditions_payload[or_condition["property"]]
         operator = or_condition["op"]
         condition_values = or_condition["values"]
         if operator == "is":
