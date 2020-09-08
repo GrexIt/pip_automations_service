@@ -1,8 +1,6 @@
 import json
 import re
 import redis
-from pydantic import BaseModel, Field, conlist
-from typing import Union
 
 
 class AutomationsRedis:
@@ -94,7 +92,11 @@ class GetActions:
         return actions
 
     def does_condition_match(self, or_condition):
-        current_property = getattr(self.conditions_payload, or_condition["property"]) if self.GetActionsRequest else self.conditions_payload[or_condition["property"]]
+        current_property = (
+            getattr(self.conditions_payload, or_condition["property"])
+            if self.GetActionsRequest
+            else self.conditions_payload[or_condition["property"]]
+        )
         operator = or_condition["op"]
         condition_values = or_condition["values"]
         if operator == "is":
