@@ -41,14 +41,13 @@ class GetActions:
         Responsible for processesing message_info and returning list of actions
     """
 
-    def __init__(self, payload, redis_host='automations_db', logobj=None):
-        print('here')
+    def __init__(self, payload, redis_host, logobj=None):
         self.log = logobj
         if not logobj:
             self.log = LogPrint()
         self.payload = payload
         self.GetActionsRequest = type(self.payload).__name__ == 'GetActionsRequest'
-        self.sm_id = self.payload_get('sm_id')
+        self.sm_id = self.payload_get('smid')
         self.trigger = self.payload_get('trigger')
         self.conditions_payload = self.payload_get('conditions_payload')
         self.log.debug('Get Actions initialized', self.sm_id, self.trigger, self.conditions_payload)
