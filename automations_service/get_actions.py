@@ -73,7 +73,10 @@ class GetActions:
         priority = json.loads(hmap.get("priority"))
         actions = []
         for auto_id in priority:
-            automation = json.loads(hmap.get("auto_id:" + str(auto_id)))
+            auto_detail = hmap.get("auto_id:" + str(auto_id))
+            if not auto_detail:
+                continue
+            automation = json.loads(auto_detail)
             and_flag = 1  # If a single and_condition fails, break out of outer loop
             conditions_json = automation["conditions"]
             for and_condition in conditions_json:
