@@ -30,9 +30,9 @@ class LogPrint:
         pass
 
     def debug(self, *argv):
-        log = ''
+        log = "\n"
         for arg in argv:
-            log += str(arg)
+            log += (str(arg)+" ")
             f = open("/usr/src/hiver/logs/backend/json_get_actions.log", "a")
             f.write("Automations " + json.dumps(log))
             f.close()
@@ -108,30 +108,44 @@ class GetActions:
             if self.GetActionsRequest
             else self.conditions_payload[or_condition["property"]]
         )
-        if type(current_property) != 'str':
+        if type(current_property).__name__ not in ['str', 'unicode']:
             current_property = ''
 
         operator = or_condition["op"]
         condition_values = or_condition["values"]
+        match_case = False
+        if current_property == 'SUBJECT':
+            match_case = True
+
         if operator == "is":
-            return self._is_match(current_property, condition_values[0])
+            return self._is_match(current_property, condition_values[0], match_case, negate=False)
         elif operator == "is not":
-            return self._is_match(current_property, condition_values[0], negate=True)
+            return self._is_match(current_property, condition_values[0], match_case, negate=True)
         elif operator == "contains":
-            return self._is_regex_match("|".join(self.escape(condition_values)), current_property)
+            return self._is_regex_match(
+                "|".join(self.escape(condition_values)), current_property, match_case, negate=False
+            )
         elif operator == "does not contain":
             return self._is_regex_match(
-                "|".join(self.escape(condition_values)), current_property, negate=True
+                "|".join(self.escape(condition_values)), current_property, match_case, negate=True
             )
         elif operator == "matches":
             return self._is_regex_match(condition_values[0], current_property)
 
-    def _is_match(self, prop1, prop2, negate=False):
+    def _is_match(self, prop1, prop2, match_case=False, negate=False):
+        if match_case:
+            prop1 = prop1.lower()
+            prop2 = prop2.lower()
+
         return (prop1 != prop2) if negate else (prop1 == prop2)
 
-    def _is_regex_match(self, regex, string, negate=False):
-        return (
-            not bool(re.search(regex, string))
-            if negate
-            else bool(re.search(regex, string))
-        )
+    def _is_regex_match(self, pattern, string, match_case=False, negate=False):
+        matched = self._regex_search(pattern, string, match_case)
+        return not bool(matched) if negate else bool(matched)
+
+    def _regex_search(self, pattern, string, match_case):
+        if not match_case:
+            matched = re.search(pattern, string, re.IGNORECASE)
+        else:
+            matched = re.search(pattern, string)
+        return matched
