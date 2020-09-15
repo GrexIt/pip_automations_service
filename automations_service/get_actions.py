@@ -33,7 +33,9 @@ class LogPrint:
         log = ''
         for arg in argv:
             log += str(arg)
-        print(log)
+            f = open("/usr/src/hiver/logs/backend/json_get_actions.log", "a")
+            f.write("Automations " + json.dumps(log))
+            f.close()
 
 
 class GetActions:
@@ -94,12 +96,21 @@ class GetActions:
                     actions.append(action)
         return actions
 
+    def escape(self, condition_values):
+        values = []
+        for condition in condition_values:
+            values.append(re.escape(condition))
+        return values
+
     def does_condition_match(self, or_condition):
         current_property = (
             getattr(self.conditions_payload, or_condition["property"])
             if self.GetActionsRequest
             else self.conditions_payload[or_condition["property"]]
         )
+        if type(current_property) != 'str':
+            current_property = ''
+
         operator = or_condition["op"]
         condition_values = or_condition["values"]
         if operator == "is":
@@ -107,10 +118,10 @@ class GetActions:
         elif operator == "is not":
             return self._is_match(current_property, condition_values[0], negate=True)
         elif operator == "contains":
-            return self._is_regex_match("|".join(condition_values), current_property)
+            return self._is_regex_match("|".join(self.escape(condition_values)), current_property)
         elif operator == "does not contain":
             return self._is_regex_match(
-                "|".join(condition_values), current_property, negate=True
+                "|".join(self.escape(condition_values)), current_property, negate=True
             )
         elif operator == "matches":
             return self._is_regex_match(condition_values[0], current_property)
