@@ -87,6 +87,7 @@ class GetActions:
                     break
             if and_flag:  # All conditions passed
                 for action in automation["actions"]:
+                    action['auto_id'] = auto_id
                     actions.append(action)
         return actions
 
