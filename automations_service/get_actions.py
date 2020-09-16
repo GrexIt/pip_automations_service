@@ -138,7 +138,11 @@ class GetActions:
 
     def _sanitize_email(self, prop, value):
         if prop in ['to', 'from']:
-            return re.search('<([^>]+)', value).group(1)
+            r = re.search('<([^>]+)', value)
+            if r:
+                return r.group(1)
+            else:
+                self.log.debug('Automations Error')
         return value
 
     def _is_match(self, prop1, prop2, match_case=False, negate=False):
