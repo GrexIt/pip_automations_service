@@ -138,12 +138,13 @@ class GetActions:
 
     def _sanitize_email(self, prop, value):
         if prop in ['to', 'from']:
-            return re.search('\<([^>]+)', value).group(1)
+            return re.search('<([^>]+)', value).group(1)
+        return value
 
     def _is_match(self, prop1, prop2, match_case=False, negate=False):
         prop1 = str(prop1)
         prop2 = str(prop2)
-        if match_case:
+        if not match_case:
             prop1 = prop1.lower()
             prop2 = prop2.lower()
 
