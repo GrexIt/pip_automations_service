@@ -103,6 +103,12 @@ class GetActions:
         return values
 
     def does_condition_match(self, or_condition):
+        match_case = False
+
+        if or_condition["property"] == 'SUBJECT':
+            match_case = True
+            or_condition["property"] = 'subject'
+
         current_property = (
             getattr(self.conditions_payload, or_condition["property"])
             if self.GetActionsRequest
@@ -113,9 +119,6 @@ class GetActions:
 
         operator = or_condition["op"]
         condition_values = or_condition["values"]
-        match_case = False
-        if current_property == 'SUBJECT':
-            match_case = True
 
         if operator == "is":
             return self._is_match(current_property, condition_values[0], match_case, negate=False)
