@@ -96,7 +96,7 @@ class GetActions:
                         action['auto_id'] = auto_id
                         actions.append(action)
             except Exception as e:
-                self.log.debug("Problem in getting the automation with id"+auto_id+" with Exception as "+e)
+                self.log.debug("Problem in getting the automation with id",auto_id," with Exception as ",e)
                 continue
         return actions
 
