@@ -121,6 +121,7 @@ class GetActions:
         condition_values = or_condition["values"]
 
         if operator == "is":
+            current_property = self._sanitize_email(or_condition['property'], current_property)
             return self._is_match(current_property, condition_values[0], match_case, negate=False)
         elif operator == "is not":
             return self._is_match(current_property, condition_values[0], match_case, negate=True)
@@ -135,7 +136,13 @@ class GetActions:
         elif operator == "matches":
             return self._is_regex_match(condition_values[0], current_property)
 
+    def _sanitize_email(self, prop, value):
+        if prop in ['to', 'from']:
+            return re.search('\<([^>]+)', value).group(1)
+
     def _is_match(self, prop1, prop2, match_case=False, negate=False):
+        prop1 = str(prop1)
+        prop2 = str(prop2)
         if match_case:
             prop1 = prop1.lower()
             prop2 = prop2.lower()
