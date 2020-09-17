@@ -78,6 +78,7 @@ class GetActions:
             auto_detail = hmap.get("auto_id:" + str(auto_id))
             if not auto_detail:
                 continue
+
             automation = json.loads(auto_detail)
             and_flag = 1  # If a single and_condition fails, break out of outer loop
             conditions_json = automation["conditions"]
@@ -121,10 +122,11 @@ class GetActions:
         condition_values = or_condition["values"]
 
         if operator == "is":
-            current_property = self._sanitize_email(or_condition['property'], current_property)
-            return self._is_match(current_property, condition_values[0], match_case, negate=False)
+            current_properties = self._sanitize_email(or_condition['property'], current_property)
+            return self._is_match(current_properties, condition_values[0], match_case, negate=False)
         elif operator == "is not":
-            return self._is_match(current_property, condition_values[0], match_case, negate=True)
+            current_properties = self._sanitize_email(or_condition['property'], current_property)
+            return self._is_match(current_properties, condition_values[0], match_case, negate=True)
         elif operator == "contains":
             return self._is_regex_match(
                 "|".join(self.escape(condition_values)), current_property, match_case, negate=False
@@ -137,22 +139,32 @@ class GetActions:
             return self._is_regex_match(condition_values[0], current_property)
 
     def _sanitize_email(self, prop, value):
-        if prop in ['to', 'from']:
+        if prop in ['from']:
             r = re.search('<([^>]+)', value)
             if r:
-                return r.group(1)
+                return [r.group(1)]
             else:
                 self.log.debug('Automations Error')
-        return value
+        elif prop in ['to', 'cc']:
+            return value.split(', ')
+        return [value]
 
-    def _is_match(self, prop1, prop2, match_case=False, negate=False):
-        prop1 = str(prop1)
+    def _is_match(self, current_properties, prop2, match_case=False, negate=False):
         prop2 = str(prop2)
         if not match_case:
-            prop1 = prop1.lower()
             prop2 = prop2.lower()
 
-        return (prop1 != prop2) if negate else (prop1 == prop2)
+        for prop1 in current_properties:
+            prop1 = str(prop1)
+            if not match_case:
+                prop1 = prop1.lower()
+            if prop1 == prop2:
+                if negate:
+                    return False
+                else:
+                    return True
+
+        return False
 
     def _is_regex_match(self, pattern, string, match_case=False, negate=False):
         matched = self._regex_search(pattern, string, match_case)
