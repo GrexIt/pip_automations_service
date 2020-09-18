@@ -164,7 +164,7 @@ class GetActions:
                 else:
                     return True
 
-        return False
+        return negate
 
     def _is_regex_match(self, pattern, string, match_case=False, negate=False):
         matched = self._regex_search(pattern, string, match_case)
