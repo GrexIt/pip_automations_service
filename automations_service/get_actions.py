@@ -78,23 +78,26 @@ class GetActions:
             auto_detail = hmap.get("auto_id:" + str(auto_id))
             if not auto_detail:
                 continue
-
-            automation = json.loads(auto_detail)
-            and_flag = 1  # If a single and_condition fails, break out of outer loop
-            conditions_json = automation["conditions"]
-            for and_condition in conditions_json:
-                or_flag = 0  # If  a single or_condition passes, break out of inner loop
-                for or_condition in and_condition:
-                    if self.does_condition_match(or_condition):
-                        or_flag = 1
+            try:
+                automation = json.loads(auto_detail)
+                and_flag = 1  # If a single and_condition fails, break out of outer loop
+                conditions_json = automation["conditions"]
+                for and_condition in conditions_json:
+                    or_flag = 0  # If  a single or_condition passes, break out of inner loop
+                    for or_condition in and_condition:
+                        if self.does_condition_match(or_condition):
+                            or_flag = 1
+                            break
+                    if not or_flag:
+                        and_flag = 0
                         break
-                if not or_flag:
-                    and_flag = 0
-                    break
-            if and_flag:  # All conditions passed
-                for action in automation["actions"]:
-                    action['auto_id'] = auto_id
-                    actions.append(action)
+                if and_flag:  # All conditions passed
+                    for action in automation["actions"]:
+                        action['auto_id'] = auto_id
+                        actions.append(action)
+            except Exception as e:
+                self.log.debug("Automations error in getActions for automation id ", auto_id, e)
+                continue
         return actions
 
     def escape(self, condition_values):
