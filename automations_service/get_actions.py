@@ -59,7 +59,7 @@ class GetActions:
         return getattr(self.payload, value) if self.GetActionsRequest else self.payload[value]
 
     def process(self):
-        self.log.debug('Get Actions process called')
+        self.log.debug('Get Actions process called', self.payload)
         hmap = self.get_all_automations_from_redis()
         if not hmap:
             return None
@@ -76,10 +76,13 @@ class GetActions:
         actions = []
         for auto_id in priority:
             auto_detail = hmap.get("auto_id:" + str(auto_id))
+            self.log.debug('Get Actions applicable actions', auto_detail)
             if not auto_detail:
                 continue
             try:
                 automation = json.loads(auto_detail)
+                if self.trigger != automation['trigger_name']:
+                    continue
                 and_flag = 1  # If a single and_condition fails, break out of outer loop
                 conditions_json = automation["conditions"]
                 for and_condition in conditions_json:
@@ -96,7 +99,9 @@ class GetActions:
                         action['auto_id'] = auto_id
                         actions.append(action)
             except Exception as e:
-                self.log.debug("Automations error in getActions for automation id ", auto_id, e)
+                import traceback
+                print ("Automations error in getActions for automation id ", auto_id, traceback.format_exc())
+                self.log.debug("Automations error in getActions for automation id ", auto_id, traceback.format_exc())
                 continue
         return actions
 
