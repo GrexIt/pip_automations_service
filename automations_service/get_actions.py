@@ -110,10 +110,18 @@ class GetActions:
                 continue
         return actions
 
+    # Alternative for re.escape as it doesn't preserve unicode chars
     def escape(self, condition_values):
         values = []
         for condition in condition_values:
-            values.append(re.escape(condition))
+            cond_str = ''
+            for char in condition:
+                # Escaping ASCII Characters
+                if ord(char) < 128:
+                    char = re.escape(char)
+                # Preseving Unicode Characters
+                cond_str += char
+            values.append(cond_str)
         return values
 
     def does_condition_match(self, or_condition):
@@ -164,17 +172,19 @@ class GetActions:
         return [value]
 
     def _match_case_conversion_required(self, match_case, value):
+        self.log.debug('Automations match_case', match_case, value)
         return (not match_case and type(value) in [unicode, str])
 
     def _is_match(self, current_properties, prop2, match_case=False, negate=False):
-        prop2 = str(self.encode_str(prop2))
         if self._match_case_conversion_required(match_case, prop2):
             prop2 = prop2.lower()
+        prop2 = str(self.encode_str(prop2))
 
         for prop1 in current_properties:
             if self._match_case_conversion_required(match_case, prop1):
                 prop1 = prop1.lower()
             prop1 = str(self.encode_str(prop1))
+            self.log.debug('Automations comparison', prop1, prop2, negate, match_case)
             if prop1 == prop2:
                 if negate:
                     return False
@@ -187,8 +197,6 @@ class GetActions:
         if not match_case:
             string = string.lower()
             pattern = pattern.lower()
-        string = self.encode_str(string)
-        pattern = self.encode_str(pattern)
 
         matched = re.search(pattern, string)
         return not bool(matched) if negate else bool(matched)
