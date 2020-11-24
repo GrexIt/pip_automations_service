@@ -152,7 +152,7 @@ class GetActions:
             return self._is_regex_match(condition_values[0], current_property)
 
     def _sanitize_email(self, prop, value):
-        value = self.encode(value)
+        value = self.encode_str(value)
         if prop in ['from']:
             r = re.search('<([^>]+)', value)
             if r:
