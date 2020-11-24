@@ -158,20 +158,23 @@ class GetActions:
             if r:
                 return [r.group(1)]
             else:
-                self.log.debug('Automations from not found', prop, value)
+                self.log.debug('Automations from param not found', prop, value)
         elif prop in ['to', 'cc']:
             return value.split(', ')
         return [value]
 
+    def _match_case_conversion_required(self, match_case, value):
+        return (not match_case and type(value) in [unicode, str])
+
     def _is_match(self, current_properties, prop2, match_case=False, negate=False):
         prop2 = str(self.encode_str(prop2))
-        if not match_case:
+        if self._match_case_conversion_required(match_case, prop2):
             prop2 = prop2.lower()
 
         for prop1 in current_properties:
-            prop1 = str(self.encode_str(prop1))
-            if not match_case:
+            if self._match_case_conversion_required(match_case, prop1):
                 prop1 = prop1.lower()
+            prop1 = str(self.encode_str(prop1))
             if prop1 == prop2:
                 if negate:
                     return False
@@ -181,14 +184,11 @@ class GetActions:
         return negate
 
     def _is_regex_match(self, pattern, string, match_case=False, negate=False):
-        matched = self._regex_search(pattern, string, match_case)
-        return not bool(matched) if negate else bool(matched)
-
-    def _regex_search(self, pattern, string, match_case):
+        if not match_case:
+            string = string.lower()
+            pattern = pattern.lower()
         string = self.encode_str(string)
         pattern = self.encode_str(pattern)
-        if not match_case:
-            matched = re.search(pattern, string, re.IGNORECASE)
-        else:
-            matched = re.search(pattern, string)
-        return matched
+
+        matched = re.search(pattern, string)
+        return not bool(matched) if negate else bool(matched)
