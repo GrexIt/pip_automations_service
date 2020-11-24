@@ -55,6 +55,11 @@ class GetActions:
         self.log.debug('Get Actions initialized', self.sm_id, self.trigger, self.conditions_payload)
         self.redis = AutomationsRedis(redis_host)
 
+    def encode_str(self, value):
+        if type(value) == unicode:
+            return value.encode('utf-8')
+        return value
+
     def payload_get(self, value):
         return getattr(self.payload, value) if self.GetActionsRequest else self.payload[value]
 
@@ -147,23 +152,24 @@ class GetActions:
             return self._is_regex_match(condition_values[0], current_property)
 
     def _sanitize_email(self, prop, value):
+        value = self.encode(value)
         if prop in ['from']:
             r = re.search('<([^>]+)', value)
             if r:
                 return [r.group(1)]
             else:
-                self.log.debug('Automations Error')
+                self.log.debug('Automations from not found', prop, value)
         elif prop in ['to', 'cc']:
             return value.split(', ')
         return [value]
 
     def _is_match(self, current_properties, prop2, match_case=False, negate=False):
-        prop2 = str(prop2)
+        prop2 = str(self.encode_str(prop2))
         if not match_case:
             prop2 = prop2.lower()
 
         for prop1 in current_properties:
-            prop1 = str(prop1)
+            prop1 = str(self.encode_str(prop1))
             if not match_case:
                 prop1 = prop1.lower()
             if prop1 == prop2:
@@ -179,6 +185,8 @@ class GetActions:
         return not bool(matched) if negate else bool(matched)
 
     def _regex_search(self, pattern, string, match_case):
+        string = self.encode_str(string)
+        pattern = self.encode_str(pattern)
         if not match_case:
             matched = re.search(pattern, string, re.IGNORECASE)
         else:
