@@ -94,7 +94,7 @@ class GetActions:
             try:
                 automation = json.loads(auto_detail)
                 automations_list.update({
-                    automation['name']: automation
+                    automation['name'].lower(): automation
                 })
                 if self.trigger != automation['trigger_name']:
                     self.log.debug('Automations Mismatch in trigger type', self.trigger, automation['trigger_name'])
