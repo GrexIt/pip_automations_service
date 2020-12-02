@@ -69,8 +69,6 @@ class GetActions:
         if not hmap:
             return None
         actions, automations_list = self.get_applicable_automations(hmap)
-        if not actions:
-            return None
 
         if self.GetActionsRequest:
             # Currently unused Flow
