@@ -68,10 +68,15 @@ class GetActions:
         hmap = self.get_all_automations_from_redis()
         if not hmap:
             return None
-        actions = self.get_applicable_automations(hmap)
+        actions, automations_list = self.get_applicable_automations(hmap)
         if not actions:
             return None
-        return actions if self.GetActionsRequest else dict(actions=actions)
+
+        if self.GetActionsRequest:
+            # Currently unused Flow
+            return actions
+
+        return dict(actions=actions, automations_list=automations_list)
 
     def get_all_automations_from_redis(self):
         return self.redis.hgetall("sm_id:" + str(self.sm_id))
@@ -79,14 +84,20 @@ class GetActions:
     def get_applicable_automations(self, hmap):
         priority = json.loads(hmap.get("priority"))
         actions = []
+        automations_list = {}
         for auto_id in priority:
             auto_detail = hmap.get("auto_id:" + str(auto_id))
-            self.log.debug('Get Actions applicable actions', auto_detail)
+            self.log.debug('Get Actions checking condition', auto_detail)
             if not auto_detail:
+                self.log.debug('Get Actions automation disabled/not found')
                 continue
             try:
                 automation = json.loads(auto_detail)
+                automations_list.update({
+                    automation['name']: automation
+                })
                 if self.trigger != automation['trigger_name']:
+                    self.log.debug('Automations Mismatch in trigger type', self.trigger, automation['trigger_name'])
                     continue
                 and_flag = 1  # If a single and_condition fails, break out of outer loop
                 conditions_json = automation["conditions"]
@@ -105,10 +116,9 @@ class GetActions:
                         actions.append(action)
             except Exception as e:
                 import traceback
-                print ("Automations error in getActions for automation id ", auto_id, traceback.format_exc())
                 self.log.debug("Automations error in getActions for automation id ", auto_id, traceback.format_exc())
                 continue
-        return actions
+        return actions, automations_list
 
     # Alternative for re.escape as it doesn't preserve unicode chars
     def escape(self, condition_values):
