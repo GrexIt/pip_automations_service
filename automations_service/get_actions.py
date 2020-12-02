@@ -93,6 +93,7 @@ class GetActions:
                 continue
             try:
                 automation = json.loads(auto_detail)
+                automation['id'] = auto_id
                 automations_list.update({
                     automation['name'].lower(): automation
                 })
