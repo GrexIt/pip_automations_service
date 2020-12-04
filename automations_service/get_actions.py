@@ -43,7 +43,7 @@ class GetActions:
         Responsible for processesing message_info and returning list of actions
     """
 
-    def __init__(self, payload, redis_host, logobj=None):
+    def __init__(self, payload, redis_host, logobj=None, parity_support=False):
         self.log = logobj
         if not logobj:
             self.log = LogPrint()
@@ -54,6 +54,7 @@ class GetActions:
         self.conditions_payload = self.payload_get('conditions_payload')
         self.log.debug('Get Actions initialized', self.sm_id, self.trigger, self.conditions_payload)
         self.redis = AutomationsRedis(redis_host)
+        self.parity_support = parity_support
 
     def encode_str(self, value):
         if type(value) == unicode:
@@ -73,8 +74,10 @@ class GetActions:
         if self.GetActionsRequest:
             # Currently unused Flow
             return actions
-
-        return dict(actions=actions, automations_list=automations_list)
+        return_value = dict(actions=actions, automations_list=automations_list)
+        if not self.parity_support:
+            return return_value if actions else None
+        return return_value
 
     def get_all_automations_from_redis(self):
         return self.redis.hgetall("sm_id:" + str(self.sm_id))
@@ -175,8 +178,12 @@ class GetActions:
                 return [r.group(1)]
             else:
                 self.log.debug('Automations from param not found', prop, value)
+                return [value.strip() if value else '###']
         elif prop in ['to', 'cc']:
-            return value.split(', ')
+            email_ids = []
+            for email in value.split(','):
+                email_ids += self._sanitize_email('from', email.strip())
+            return email_ids
         return [value]
 
     def _match_case_conversion_required(self, match_case, value):
