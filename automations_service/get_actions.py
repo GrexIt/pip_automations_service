@@ -68,7 +68,7 @@ class GetActions:
         self.log.debug('Get Actions process called', self.payload)
         hmap = self.get_all_automations_from_redis()
         if not hmap:
-            return None
+            return {}
         actions, automations_list = self.get_applicable_automations(hmap)
 
         if self.GetActionsRequest:
