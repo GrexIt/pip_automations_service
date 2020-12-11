@@ -169,16 +169,16 @@ class GetActions:
         # CONTAINS clause
         elif operator == "contains":
             return self._is_regex_match(
-                "|".join(self.escape(condition_values)), "".join(current_properties), match_case, negate=False
+                "|".join(self.escape(condition_values)), ",".join(current_properties), match_case, negate=False
             )
         # CONTAINS NOT clause
         elif operator == "does not contain":
             return self._is_regex_match(
-                "|".join(self.escape(condition_values)), "".join(current_properties), match_case, negate=True
+                "|".join(self.escape(condition_values)), ",".join(current_properties), match_case, negate=True
             )
         # MATCHES clause
         elif operator == "matches":
-            return self._is_regex_match(condition_values[0], "".join(current_properties))
+            return self._is_regex_match(condition_values[0], ",".join(current_properties))
 
     def _sanitize_email(self, prop, value):
         if prop in ['from']:
