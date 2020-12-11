@@ -29,13 +29,19 @@ class LogPrint:
     def __init__(self):
         pass
 
+    def encode_str(self, value):
+        if type(value) == unicode:
+            return value.encode('utf-8')
+        return value
+
     def debug(self, *argv):
-        log = "\n"
+        log = ""
         for arg in argv:
-            log += (str(arg)+" ")
-            f = open("/usr/src/hiver/logs/backend/json_get_actions.log", "a")
-            f.write("Automations " + json.dumps(log))
-            f.close()
+            log += json.dumps(str(self.encode_str(arg))+" ") + "  "
+        f = open("/usr/src/hiver/logs/backend/json_get_actions.log", "a")
+        f.write("\nAutomations " + log)
+        f.close()
+        print("Automations " + log)
 
 
 class GetActions:
@@ -153,23 +159,26 @@ class GetActions:
 
         operator = or_condition["op"]
         condition_values = or_condition["values"]
-
+        current_properties = self._sanitize_email(or_condition['property'], current_property)
+        # IS clause
         if operator == "is":
-            current_properties = self._sanitize_email(or_condition['property'], current_property)
             return self._is_match(current_properties, condition_values[0], match_case, negate=False)
+        # IS NOT clause
         elif operator == "is not":
-            current_properties = self._sanitize_email(or_condition['property'], current_property)
             return self._is_match(current_properties, condition_values[0], match_case, negate=True)
+        # CONTAINS clause
         elif operator == "contains":
             return self._is_regex_match(
-                "|".join(self.escape(condition_values)), current_property, match_case, negate=False
+                "|".join(self.escape(condition_values)), "".join(current_properties), match_case, negate=False
             )
+        # CONTAINS NOT clause
         elif operator == "does not contain":
             return self._is_regex_match(
-                "|".join(self.escape(condition_values)), current_property, match_case, negate=True
+                "|".join(self.escape(condition_values)), "".join(current_properties), match_case, negate=True
             )
+        # MATCHES clause
         elif operator == "matches":
-            return self._is_regex_match(condition_values[0], current_property)
+            return self._is_regex_match(condition_values[0], "".join(current_properties))
 
     def _sanitize_email(self, prop, value):
         if prop in ['from']:
@@ -178,7 +187,7 @@ class GetActions:
                 return [r.group(1)]
             else:
                 self.log.debug('Automations from param not found', prop, value)
-                return [value.strip() if value else '###']
+                return [value.strip() if value else '']
         elif prop in ['to', 'cc']:
             email_ids = []
             for email in value.split(','):
