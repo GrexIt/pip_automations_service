@@ -148,6 +148,9 @@ class GetActions:
         if or_condition["property"] == 'SUBJECT':
             match_case = True
             or_condition["property"] = 'subject'
+        elif or_condition["property"] in ['TO', 'CC']:
+            exact_match = True
+            or_condition["property"] = or_condition["property"].lower()
 
         current_property = (
             getattr(self.conditions_payload, or_condition["property"])
@@ -156,6 +159,26 @@ class GetActions:
         )
         if type(current_property).__name__ not in ['str', 'unicode']:
             current_property = ''
+
+        operator = or_condition["op"]
+        condition_values = or_condition["values"]
+        current_properties = self._sanitize_data(or_condition['property'], current_property)
+
+
+        # EXACT MATCH FOR CONTAINS AND DOES NOT CONTAIN
+        if exact_match:
+            matched = False
+            for condition_value in condition_values:
+                matched = self._is_match(
+                    current_properties,
+                    condition_value,
+                    match_case,
+                    negate=(operator == "does not contain")
+                )
+                if matched:
+                    return True
+
+            return matched
 
         operator = or_condition["op"]
         condition_values = or_condition["values"]
