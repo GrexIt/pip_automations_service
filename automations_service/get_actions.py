@@ -165,25 +165,26 @@ class GetActions:
         condition_values = or_condition["values"]
         current_properties = self._sanitize_data(or_condition['property'], current_property)
 
-
         # EXACT MATCH FOR CONTAINS AND DOES NOT CONTAIN
-        if exact_match:
+        if exact_match and 'contain' in operator:
             matched = False
+            negate_val = (operator == "does not contain")
             for condition_value in condition_values:
                 matched = self._is_match(
                     current_properties,
                     condition_value,
                     match_case,
-                    negate=(operator == "does not contain")
+                    negate=False
                 )
                 if matched:
+                    if negate_val:
+                        return False
                     return True
-
-            return matched
+            return negate_val
 
         operator = or_condition["op"]
         condition_values = or_condition["values"]
-        current_properties = self._sanitize_email(or_condition['property'], current_property)
+
         # IS clause
         if operator == "is":
             return self._is_match(current_properties, condition_values[0], match_case, negate=False)
@@ -204,18 +205,21 @@ class GetActions:
         elif operator == "matches":
             return self._is_regex_match(condition_values[0], ",".join(current_properties))
 
-    def _sanitize_email(self, prop, value):
+    def _sanitize_email(self, value):
+        r = re.search('<([^>]+)', value)
+        if r:
+            return [r.group(1)]
+        else:
+            self.log.debug('Automations from param not found', value)
+            return [value.strip() if value else '']
+
+    def _sanitize_data(self, prop, value):
         if prop in ['from']:
-            r = re.search('<([^>]+)', value)
-            if r:
-                return [r.group(1)]
-            else:
-                self.log.debug('Automations from param not found', prop, value)
-                return [value.strip() if value else '']
+            return self._sanitize_email(value)
         elif prop in ['to', 'cc']:
             email_ids = []
             for email in value.split(','):
-                email_ids += self._sanitize_email('from', email.strip())
+                email_ids += self._sanitize_email(email.strip())
             return email_ids
         return [value]
 
