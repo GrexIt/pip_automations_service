@@ -144,6 +144,7 @@ class GetActions:
 
     def does_condition_match(self, or_condition):
         match_case = False
+        exact_match = False
 
         if or_condition["property"] == 'SUBJECT':
             match_case = True
