@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="automations_service",
-    version="1.0.4",
+    version="1.1.0",
     author="Raghav CS/Chalukya J",
     author_email="raghav@grexit.com",
     description="A small pip package to get automation contidions from Redis",
