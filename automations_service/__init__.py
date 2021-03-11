@@ -46,6 +46,10 @@ def automation_enabled(sm_id, redis_host, check_for_body_search=False):
                         return True
     except Exception:
         pass
+
+    if check_for_body_search:
+        return False, False
+
     return False
 
 
