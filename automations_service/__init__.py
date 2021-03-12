@@ -21,7 +21,7 @@ def get_automation_name(sm_id, sm_auto_id, redis_host=False, client=False, check
             auto_detail = json.loads(automation_details)
             if check_for_body_search:
                 body_search_automation = False
-                if '"property":"body"' in automation_details:
+                if '"property": "body"' in automation_details:
                     body_search_automation = True
                 return auto_detail['name'], body_search_automation
             return auto_detail['name']
