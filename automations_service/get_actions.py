@@ -146,9 +146,9 @@ class GetActions:
         match_case = False
         exact_match = False
 
-        if or_condition["property"] == 'SUBJECT':
+        if or_condition["property"] in ['SUBJECT', 'BODY']:
             match_case = True
-            or_condition["property"] = 'subject'
+            or_condition["property"] = or_condition["property"].lower()
         elif or_condition["property"] in ['TO', 'CC']:
             exact_match = True
             or_condition["property"] = or_condition["property"].lower()
